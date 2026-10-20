@@ -1,0 +1,8 @@
+node_modules/
+dist/
+build/
+evidence/
+.DS_Store
+runtime/
+.env
+.env.*

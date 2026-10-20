@@ -1,0 +1,77 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "context-meter",
+  "version": "0.1.2",
+  "description": "Read-only local Codex context and prompt cache monitor.",
+  "extensions": {
+    "com.openai": {
+      "requires_local_executor": true,
+      "interface": {
+        "logo": "./assets/icon.png",
+        "composerIcon": "./assets/composer-icon.png",
+        "displayName": "Context Meter",
+        "shortDescription": "本地上下文与缓存用量监控",
+        "longDescription": "手动选择本地 Codex 会话记录，查看最近及累计 token 用量、缓存命中率、窗口占用估算和上报时间。使用增量扫描，支持同标识的多份记录。日志仅在本机处理；窗口占用为估算。",
+        "category": "Productivity",
+        "capabilities": [
+          "Interactive"
+        ],
+        "defaultPrompt": "打开 Context Meter 会话统计面板。"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "准备有至少两份本地测试记录的环境，打开真实客户端侧面板。用户必须手动选择记录。",
+              "prompt": "我想查看一次 Codex 会话的上下文和 token 用量，让我自己选择会话。",
+              "tools_triggered": "open_monitor; panel: list_sessions, get_session_metrics",
+              "expected_behavior": "显示会话选择器；选择后显示 session_id 与独立记录引用，统计来自所选 session_ref，不默认选择最新日志。"
+            },
+            {
+              "description": "使用输入 100、缓存 80、输出 20、窗口 1000 的 fixture；累计统计使用返回值独立计算。",
+              "prompt": "展示最近的缓存命中率、累计命中率，以及窗口占用估算。",
+              "tools_triggered": "open_monitor; panel: get_session_metrics",
+              "expected_behavior": "最近命中率为 80%，最近未缓存输入为 20，窗口占用估算为 12%；累计命中率按累计缓存输入除以累计输入计算。"
+            },
+            {
+              "description": "准备同一 session_id 的两份日志，输入分别为 100 与 900；由用户分别选择。",
+              "prompt": "这两个同名会话记录有什么不同？请让我分别查看统计。",
+              "tools_triggered": "open_monitor; panel: list_sessions, get_session_metrics",
+              "expected_behavior": "两份记录分别展示不同 session_ref，选择后分别显示 100 与 900 输入 tokens，不合并或按修改时间猜测。"
+            },
+            {
+              "description": "在测试 fixture 上追加 compacted 记录，再追加新的 token_count 记录。",
+              "prompt": "我想观察会话压缩前后的统计变化。",
+              "tools_triggered": "open_monitor; panel: get_session_metrics",
+              "expected_behavior": "压缩后明确提示旧值，新的统计到达后恢复正常上报状态；累计消耗不被当作当前窗口占用。"
+            },
+            {
+              "description": "在完整扫描后的测试记录追加新用量，观察刷新、暂停与继续。",
+              "prompt": "持续显示这份记录的 token 用量，我需要时可以暂停查看。",
+              "tools_triggered": "open_monitor; panel: get_session_metrics",
+              "expected_behavior": "面板通过 App 工具周期刷新；暂停后不继续请求，继续后恢复；不产生周期聊天消息。记录实际显示延迟，不以服务端延迟冒充浏览器测量。"
+            }
+          ],
+          "negative": [
+            {
+              "description": "本插件只读，应说明无法删除、改写或压缩会话日志，不调用本插件工具执行修改。",
+              "prompt": "删除我日志里所有工具输出，直接把上下文改小。"
+            },
+            {
+              "description": "本插件仅适配 Codex 本地 rollout，应说明不支持其他产品，不调用本插件工具并虚构统计。",
+              "prompt": "用这个插件查看 Claude 网页聊天的上下文和缓存命中率。"
+            },
+            {
+              "description": "本插件不提供账号额度、订阅账单或退款功能；应说明范围，不调用本插件工具充当账单接口。",
+              "prompt": "查一下我的订阅还剩多少钱，并退还缓存命中节省的费用。"
+            }
+          ]
+        }
+      },
+      "publication": {
+        "release_notes": "0.1.2：采用 MIT 许可证，补齐源码与运行包中的 LICENSE、元数据和 GitHub 发布说明。会话标题、搜索及指标功能沿用已获用户确认的 0.1.1。Intel Mac 与 Windows 的实机验证仍待完成。"
+      }
+    }
+  },
+  "license": "MIT"
+}
