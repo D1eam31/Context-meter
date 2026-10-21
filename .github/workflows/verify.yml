@@ -1,0 +1,27 @@
+name: Verify
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
+        with:
+          version: '2026.10.14'
+          cache: false
+      - run: mise exec -- npm ci --ignore-scripts
+      - run: mise exec -- npm run typecheck
+      - run: mise exec -- npm run build
+      - run: mise exec -- npm test
+      - run: mise exec -- node scripts/package.mjs
+      - name: Verify bundled runtime without system Node on PATH
+        run: mise exec -- node scripts/verify-package.mjs
