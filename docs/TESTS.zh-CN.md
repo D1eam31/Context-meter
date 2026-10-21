@@ -56,3 +56,25 @@
 ## 许可和发布边界
 
 项目源码 MIT 与 Node/依赖的许可分别保留。MIT 不等于官方目录准入。版权署名采用 Context Meter contributors，未虚构已验证的发布者身份。GitHub 上传指南仅提供用户可执行的命令，没有自动创建仓库、提交或推送。
+
+
+## 2026-10-21：Windows 许可证换行兼容修复
+
+本节补充首次交付后实际运行的 GitHub CI 证据。提交 930ddf2 的两个 macOS 任务通过；Windows 任务在许可证首行断言失败，19 项通过、1 项失败、2 项符号链接测试按原有条件跳过。[原失败运行](https://github.com/D1eam31/Context-meter/actions/runs/39542073239)。
+
+原因：Git 在 Windows 检出 LICENSE 时使用 CRLF，原断言只接受 LF。修复仅使首行表达式接受可选的回车字符；MIT 标题、版权、许可元数据与清单校验全部保留。不修改 LICENSE 正文、插件运行逻辑、版本、依赖或既有发布附件。
+
+本地环境：macOS arm64，mise 管理的 Node 24.22.0。锁文件安装使用 npm ci --ignore-scripts；类型检查、构建及 22 项测试通过。在隔离项目副本中运行同一份真实清单测试：旧代码接受 LF、拒绝 CRLF；修复后接受两者，错误标题和错误版权仍被拒绝。没有改写仓库中的 LICENSE 来模拟 Windows。
+
+本地验证命令：
+
+```sh
+mise exec -- npm ci --ignore-scripts
+mise exec -- npm run typecheck
+mise exec -- npm run build
+mise exec -- npm test
+mise exec -- node scripts/package.mjs
+mise exec -- node scripts/verify-package.mjs
+```
+
+最后两步验证本机暂存包及其自带 Node，不替换既有 Release ZIP。远端修复后的三平台结果以新提交的 Verify 运行和最终验证报告为准。Windows 预期 20 项通过、2 项符号链接测试跳过；客户端面板仍需 Windows 实机确认。

@@ -252,5 +252,5 @@ test('portable manifests validate against downloaded official schemas and match 
   assert.equal(pkg.version,manifest.version);
   assert.equal(pkg.license,'MIT');assert.equal(manifest.license,'MIT');
   const license=await readFile('LICENSE','utf8');
-  assert.match(license,/^MIT License\n/);assert.match(license,/Copyright \(c\) 2026 Context Meter contributors/);
+  assert.match(license,/^MIT License\r?\n/);assert.match(license,/Copyright \(c\) 2026 Context Meter contributors/);
 });
